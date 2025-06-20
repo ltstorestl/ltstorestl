@@ -136,8 +136,9 @@ app.get('/logout', async (req, res) => {
 
 // Admin: Add user page
 app.get('/admin/users', requireAdmin, async (req, res) => {
-  const users = await User.find({}, 'username profileName profilePicture online');
-  res.render('admin-users', { users, error: null });
+  const users = await User.find({}, 'username profileName profilePicture online isAdmin');
+  const user = await User.findOne({ username: req.session.user.username });
+  res.render('admin-users', { users, user, error: null });
 });
 
 // Admin: Add user form
@@ -165,6 +166,9 @@ app.post('/admin/users', requireAdmin, upload.single('profilePicture'), async (r
 app.post('/admin/users/delete', requireAdmin, async (req, res) => {
   const { username } = req.body;
   if (!username) return res.redirect('/admin/users');
+  // Prevent removing admin users
+  const userToDelete = await User.findOne({ username });
+  if (!userToDelete || userToDelete.isAdmin) return res.redirect('/admin/users');
   // Remove user
   await User.deleteOne({ username });
   // Remove posts
@@ -256,6 +260,26 @@ app.post('/feed/report', async (req, res) => {
 app.get('/admin/reports', requireAdmin, async (req, res) => {
   const reports = await Report.find({}).sort({ timestamp: -1 }).populate('postId').lean();
   res.render('admin-reports', { reports });
+});
+
+// Delete a single inbox message (user or admin)
+app.post('/inbox/message/delete', async (req, res) => {
+  if (!req.session.user) return res.status(401).send('Unauthorized');
+  const { messageId } = req.body;
+  const user = await User.findOne({ username: req.session.user.username });
+  const message = await Message.findById(messageId);
+  if (!message) return res.redirect('/inbox');
+  // Only allow delete if user is sender or admin
+  if (message.from === user.username || user.isAdmin) {
+    await Message.deleteOne({ _id: messageId });
+  }
+  res.redirect('/inbox');
+});
+
+// Admin: Delete all inbox messages for all users
+app.post('/inbox/messages/delete-all', requireAdmin, async (req, res) => {
+  await Message.deleteMany({});
+  res.redirect('/inbox');
 });
 
 // Socket.IO chat logic

@@ -27,6 +27,11 @@
       <textarea name="content" placeholder="Type your message..." required></textarea>
       <button type="submit">Send</button>
     </form>
+    <% if (user && user.isAdmin) { %>
+      <form method="POST" action="/inbox/messages/delete-all" style="margin-bottom:16px;">
+        <button type="submit" class="delete-btn" style="background:#d32f2f;color:#fff;border:none;border-radius:6px;padding:6px 16px;">Delete All Messages (Admin)</button>
+      </form>
+    <% } %>
     <div class="messages-list">
       <% messages.forEach(function(m) { %>
         <div class="message-item">

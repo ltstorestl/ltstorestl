@@ -171,6 +171,8 @@
   </div>
   <script src="/socket.io/socket.io.js"></script>
   <script>
+    // Track unread messages per user
+    const unread = {};
     // Handle avatar click to set chat recipient
     document.querySelectorAll('.floating-chat-avatars .chat-avatar').forEach(function(avatar) {
       avatar.addEventListener('click', function() {
@@ -179,8 +181,10 @@
         document.getElementById('chatToUser').value = username;
         document.getElementById('chatRecipient').textContent = 'Chatting with: ' + displayName;
         document.querySelector('#chatForm textarea').focus();
-        // Clear chat messages when switching recipient
         document.getElementById('chatMessages').innerHTML = '';
+        // Remove highlight for this avatar
+        this.classList.remove('has-unread');
+        unread[username] = 0;
       });
     });
     // Prevent sending message if no recipient selected
@@ -210,18 +214,51 @@
     const socket = io();
     socket.emit('join', '<%= user.username %>');
     socket.on('chat message', function(msg) {
-      // Only show messages for the current recipient
       const currentTo = document.getElementById('chatToUser').value;
-      if (msg.from === '<%= user.username %>' && msg.to === currentTo ||
-          msg.from === currentTo && msg.to === '<%= user.username %>') {
+      if ((msg.from === '<%= user.username %>' && msg.to === currentTo) ||
+          (msg.from === currentTo && msg.to === '<%= user.username %>')) {
+        // Chat is open with this user, show message
         const chatMessages = document.getElementById('chatMessages');
         const div = document.createElement('div');
         div.className = 'chat-message-item';
-        div.innerHTML = `<span class="from">${msg.from}:</span> <span>${msg.content}</span> <span class="timestamp">${new Date(msg.timestamp).toLocaleString()}</span>`;
+        div.innerHTML = `<span class=\"from\">${msg.from}:</span> <span>${msg.content}</span> <span class=\"timestamp\">${new Date(msg.timestamp).toLocaleString()}</span>`;
         chatMessages.appendChild(div);
         chatMessages.scrollTop = chatMessages.scrollHeight;
+      } else if (msg.to === '<%= user.username %>') {
+        // Message for this user, but chat is not open: highlight sender's avatar
+        unread[msg.from] = (unread[msg.from] || 0) + 1;
+        var avatar = document.querySelector(`.floating-chat-avatars .chat-avatar[data-username='${msg.from}']`);
+        if (avatar) {
+          avatar.classList.add('has-unread');
+          // Optionally, show a badge
+          let badge = avatar.querySelector('.unread-badge');
+          if (!badge) {
+            badge = document.createElement('span');
+            badge.className = 'unread-badge';
+            avatar.appendChild(badge);
+          }
+          badge.textContent = unread[msg.from];
+        }
       }
     });
   </script>
+  <style>
+    .floating-chat-avatars .chat-avatar.has-unread {
+      box-shadow: 0 0 0 3px #ff9800;
+      position: relative;
+    }
+    .floating-chat-avatars .chat-avatar .unread-badge {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background: #ff9800;
+      color: #23262f;
+      border-radius: 50%;
+      font-size: 0.8em;
+      padding: 2px 6px;
+      font-weight: bold;
+      z-index: 2;
+    }
+  </style>
 </body>
 </html>

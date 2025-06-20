@@ -29,10 +29,12 @@
             <span class="profile-pic placeholder"></span>
           <% } %>
           <span><%= u.profileName || u.username %></span>
-          <form method="POST" action="/admin/users/delete" style="display:inline;margin-left:10px;" onsubmit="return confirm('Are you sure you want to remove this user and all their data?');">
-            <input type="hidden" name="username" value="<%= u.username %>">
-            <button type="submit" class="delete-btn" style="color:#d32f2f;background:none;border:none;cursor:pointer;">Remove User</button>
-          </form>
+          <% if (!u.isAdmin && u.username !== user.username) { %>
+            <form method="POST" action="/admin/users/delete" style="display:inline;margin-left:10px;" onsubmit="return confirm('Are you sure you want to remove this user and all their data?');">
+              <input type="hidden" name="username" value="<%= u.username %>">
+              <button type="submit" class="delete-btn" style="color:#d32f2f;background:none;border:none;cursor:pointer;">Remove User</button>
+            </form>
+          <% } %>
         </li>
       <% }) %>
     </ul>
