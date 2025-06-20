@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="dark-theme">
+  <div class="container" style="max-width:900px;flex-direction:row;align-items:flex-start;">
+    <div style="flex:1;min-width:320px;">
+      <div class="main-nav">
+        <a href="/dashboard">Home</a>
+        <a href="/feed">Feed</a>
+        <a href="/inbox">Inbox</a>
+        <a href="/settings">Settings</a>
+        <% if (user.isAdmin) { %>
+          <a href="/admin/reports">Reports</a>
+        <% } %>
+        <a href="/logout">Logout</a>
+      </div>
+      <h2>Welcome, <%= user.username %>!</h2>
+      <% if (user.isAdmin) { %>
+        <p>You are logged in as <strong>Admin</strong>.</p>
+        <a href="/admin/users">Manage Users</a>
+      <% } %>
+    </div>
+    <% if (user.isAdmin && users && users.length) { %>
+    <div class="online-users-panel">
+      <h3>Online Users</h3>
+      <ul class="user-list">
+        <% users.forEach(function(u) { if(u.online) { %>
+          <li>
+            <% if (u.profilePicture) { %>
+              <img src="<%= u.profilePicture %>" class="profile-pic" alt="Profile Picture">
+            <% } else { %>
+              <span class="profile-pic placeholder"></span>
+            <% } %>
+            <span><%= u.profileName || u.username %></span>
+          </li>
+        <% } }) %>
+      </ul>
+    </div>
+    <% } %>
+  </div>
+</body>
+</html>

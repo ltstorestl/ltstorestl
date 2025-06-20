@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inbox</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="dark-theme">
+<% const unreadCount = messages ? messages.filter(m => !m.read).length : 0; %>
+  <div class="main-nav">
+    <a href="/dashboard">Home</a>
+    <a href="/feed">Feed</a>
+    <a href="/inbox">Inbox<% if (unreadCount > 0) { %><span class="inbox-nav-notification"><%= unreadCount %></span><% } %></a>
+    <a href="/settings">Settings</a>
+    <a href="/logout">Logout</a>
+  </div>
+  <div class="inbox-container">
+    <h2>Inbox</h2>
+    <form class="inbox-send-form" method="POST" action="/inbox/send">
+      <select name="to" required>
+        <option value="">Send to...</option>
+        <% users.forEach(function(u) { %>
+          <option value="<%= u.username %>"><%= u.profileName || u.username %></option>
+        <% }) %>
+      </select>
+      <textarea name="content" placeholder="Type your message..." required></textarea>
+      <button type="submit">Send</button>
+    </form>
+    <div class="messages-list">
+      <% messages.forEach(function(m) { %>
+        <div class="message-item">
+          <span class="from"><%= m.from %></span>
+          <span><%= m.content %></span>
+          <span class="timestamp"><%= new Date(m.timestamp).toLocaleString() %></span>
+        </div>
+      <% }) %>
+      <% if (!messages.length) { %>
+        <p style="color:#888;">No messages yet.</p>
+      <% } %>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Reports</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="dark-theme">
+  <div class="main-nav">
+    <a href="/dashboard">Home</a>
+    <a href="/feed">Feed</a>
+    <a href="/inbox">Inbox</a>
+    <a href="/settings">Settings</a>
+    <a href="/admin/reports">Reports</a>
+    <a href="/logout">Logout</a>
+  </div>
+  <div class="container">
+    <h2>User Reports</h2>
+    <ul class="user-list">
+      <% reports.forEach(function(r) { %>
+        <li style="margin-bottom:18px;">
+          <div><strong>Reporter:</strong> <%= r.reporter %></div>
+          <div><strong>Reported User:</strong> <%= r.reportedUser %></div>
+          <div><strong>Reason:</strong> <%= r.reason %></div>
+          <div><strong>Time:</strong> <%= new Date(r.timestamp).toLocaleString() %></div>
+          <% if (r.postId) { %>
+            <div><strong>Post:</strong> <%= r.postId.content %></div>
+          <% } %>
+        </li>
+      <% }) %>
+      <% if (!reports.length) { %>
+        <li style="color:#888;">No reports yet.</li>
+      <% } %>
+    </ul>
+  </div>
+</body>
+</html>
