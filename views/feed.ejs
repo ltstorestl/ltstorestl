@@ -63,6 +63,48 @@
             <% if (post.media) { %>
               <img src="<%= post.media %>" class="feed-media" alt="media">
             <% } %>
+            <div class="post-actions" style="margin-top:10px;display:flex;align-items:center;gap:16px;">
+              <form method="POST" action="/feed/like" style="display:inline;">
+                <input type="hidden" name="postId" value="<%= post._id %>">
+                <button type="submit" class="like-btn" style="background:none;border:none;cursor:pointer;font-size:1.2em;">
+                  👍 <span><%= post.likes || 0 %></span>
+                </button>
+              </form>
+              <button type="button" class="comment-toggle-btn" onclick="toggleCommentBox('<%= post._id %>')" style="background:none;border:none;cursor:pointer;font-size:1.2em;">💬 Comment</button>
+              <form method="POST" action="/feed/emoji" style="display:inline;">
+                <input type="hidden" name="postId" value="<%= post._id %>">
+                <select name="emoji" onchange="this.form.submit()" style="background:#23262f;color:#e3e6ed;border-radius:6px;padding:2px 6px;">
+                  <option value="">😊</option>
+                  <option value="😀">😀</option>
+                  <option value="😂">😂</option>
+                  <option value="😍">😍</option>
+                  <option value="😎">😎</option>
+                  <option value="🥳">🥳</option>
+                  <option value="😢">😢</option>
+                  <option value="🔥">🔥</option>
+                  <option value="👍">👍</option>
+                  <option value="🙏">🙏</option>
+                  <option value="🎉">🎉</option>
+                </select>
+              </form>
+            </div>
+            <div class="comment-section" id="comment-section-<%= post._id %>" style="display:none;margin-top:10px;">
+              <form method="POST" action="/feed/comment" style="display:flex;gap:8px;align-items:center;">
+                <input type="hidden" name="postId" value="<%= post._id %>">
+                <input type="text" name="comment" placeholder="Write a comment..." required style="flex:1;border-radius:6px;background:#23262f;color:#e3e6ed;border:1px solid #444857;padding:6px;">
+                <button type="submit" style="background:#8ab4f8;color:#23262f;border:none;border-radius:6px;padding:6px 12px;">Post</button>
+              </form>
+              <div class="comments-list" style="margin-top:8px;">
+                <% if (post.comments && post.comments.length) { %>
+                  <% post.comments.forEach(function(c) { %>
+                    <div class="comment-item" style="margin-bottom:6px;">
+                      <span style="color:#8ab4f8;font-weight:500;"><%= c.user %>:</span>
+                      <span><%= c.text %></span>
+                    </div>
+                  <% }) %>
+                <% } %>
+              </div>
+            </div>
             <form method="POST" action="/feed/report" style="margin-top:8px;">
               <input type="hidden" name="postId" value="<%= post._id %>">
               <input type="hidden" name="reportedUser" value="<%= post.author %>">
@@ -164,6 +206,14 @@
         e.preventDefault();
       }
     });
+    function toggleCommentBox(postId) {
+      var el = document.getElementById('comment-section-' + postId);
+      if (el.style.display === 'none' || el.style.display === '') {
+        el.style.display = 'block';
+      } else {
+        el.style.display = 'none';
+      }
+    }
   </script>
 </body>
 </html>
