@@ -6,8 +6,12 @@ const MongoStore = require('connect-mongo');
 const bcrypt = require('bcrypt');
 const path = require('path');
 const multer = require('multer');
+const http = require('http');
+const { Server } = require('socket.io');
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
 const upload = multer({ dest: path.join(__dirname, 'public/uploads/') });
 
 // MongoDB connection
@@ -157,6 +161,21 @@ app.post('/admin/users', requireAdmin, upload.single('profilePicture'), async (r
   }
 });
 
+// Admin: Remove user and all their data
+app.post('/admin/users/delete', requireAdmin, async (req, res) => {
+  const { username } = req.body;
+  if (!username) return res.redirect('/admin/users');
+  // Remove user
+  await User.deleteOne({ username });
+  // Remove posts
+  await Post.deleteMany({ author: username });
+  // Remove messages (sent or received)
+  await Message.deleteMany({ $or: [{ from: username }, { to: username }] });
+  // Remove reports involving this user
+  await Report.deleteMany({ $or: [{ reporter: username }, { reportedUser: username }] });
+  res.redirect('/admin/users');
+});
+
 app.get('/feed', async (req, res) => {
   if (!req.session.user) return res.redirect('/login');
   const user = await User.findOne({ username: req.session.user.username });
@@ -239,5 +258,31 @@ app.get('/admin/reports', requireAdmin, async (req, res) => {
   res.render('admin-reports', { reports });
 });
 
+// Socket.IO chat logic
+io.on('connection', (socket) => {
+  // Optionally, associate socket with user after authentication
+  socket.on('join', (username) => {
+    socket.username = username;
+    socket.join(username); // Join a room for private messaging
+  });
+
+  // Handle sending chat messages
+  socket.on('chat message', async (msg) => {
+    // msg: { from, to, content }
+    if (!msg.from || !msg.to || !msg.content) return;
+    // Save message to DB
+    const message = await Message.create({ from: msg.from, to: msg.to, content: msg.content });
+    // Emit to recipient if online
+    io.to(msg.to).emit('chat message', message);
+    // Emit to sender for confirmation
+    socket.emit('chat message', message);
+  });
+
+  // Optionally, handle disconnects
+  socket.on('disconnect', () => {
+    // You can update user online status here if needed
+  });
+});
+
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

@@ -145,26 +145,7 @@
             <input type="hidden" name="to" id="chatToUser" required>
             <div id="chatRecipient" style="margin-bottom:10px;color:#8ab4f8;font-weight:500;"></div>
             <div id="chatMessages">
-              <% if (typeof chatMessages !== 'undefined' && chatMessages && chatMessages.length) { %>
-                <% chatMessages.forEach(function(msg) { %>
-                  <div class="chat-message-item">
-                    <span class="from"><%= msg.from %>:</span>
-                    <span><%= msg.content %></span>
-                    <span class="timestamp"><%= new Date(msg.timestamp).toLocaleString() %></span>
-                    <form class="report-form" method="POST" action="/report/message" style="display:inline;margin-left:8px;">
-                      <input type="hidden" name="messageId" value="<%= msg._id %>">
-                      <input type="hidden" name="reportedUser" value="<%= msg.from %>">
-                      <button type="submit" class="report-btn" title="Report this message">Report</button>
-                    </form>
-                    <% if (user && (user.username === msg.from || user.isAdmin)) { %>
-                      <form class="delete-form" method="POST" action="/feed/message/delete" style="display:inline;margin-left:8px;">
-                        <input type="hidden" name="messageId" value="<%= msg._id %>">
-                        <button type="submit" class="delete-btn" title="Delete this message" style="color:#d32f2f;background:none;border:none;cursor:pointer;">Delete</button>
-                      </form>
-                    <% } %>
-                  </div>
-                <% }) %>
-              <% } %>
+              <!-- Chat messages will be rendered here by JS -->
             </div>
             <textarea name="content" rows="2" placeholder="Type your message..." style="width:100%;border-radius:8px;background:#23262f;color:#e3e6ed;border:1px solid #444857;padding:8px;" required></textarea>
             <button type="submit" style="margin-top:8px;width:100%;">Send</button>
@@ -188,6 +169,7 @@
       </div>
     </div>
   </div>
+  <script src="/socket.io/socket.io.js"></script>
   <script>
     // Handle avatar click to set chat recipient
     document.querySelectorAll('.floating-chat-avatars .chat-avatar').forEach(function(avatar) {
@@ -197,6 +179,8 @@
         document.getElementById('chatToUser').value = username;
         document.getElementById('chatRecipient').textContent = 'Chatting with: ' + displayName;
         document.querySelector('#chatForm textarea').focus();
+        // Clear chat messages when switching recipient
+        document.getElementById('chatMessages').innerHTML = '';
       });
     });
     // Prevent sending message if no recipient selected
@@ -204,7 +188,15 @@
       if (!document.getElementById('chatToUser').value) {
         alert('Please select a user to chat with by clicking their profile photo.');
         e.preventDefault();
+        return;
       }
+      e.preventDefault();
+      const to = document.getElementById('chatToUser').value;
+      const content = this.querySelector('textarea').value.trim();
+      if (!content) return;
+      // Send message via Socket.IO
+      socket.emit('chat message', { from: '<%= user.username %>', to, content });
+      this.querySelector('textarea').value = '';
     });
     function toggleCommentBox(postId) {
       var el = document.getElementById('comment-section-' + postId);
@@ -214,6 +206,22 @@
         el.style.display = 'none';
       }
     }
+    // Socket.IO client setup
+    const socket = io();
+    socket.emit('join', '<%= user.username %>');
+    socket.on('chat message', function(msg) {
+      // Only show messages for the current recipient
+      const currentTo = document.getElementById('chatToUser').value;
+      if (msg.from === '<%= user.username %>' && msg.to === currentTo ||
+          msg.from === currentTo && msg.to === '<%= user.username %>') {
+        const chatMessages = document.getElementById('chatMessages');
+        const div = document.createElement('div');
+        div.className = 'chat-message-item';
+        div.innerHTML = `<span class="from">${msg.from}:</span> <span>${msg.content}</span> <span class="timestamp">${new Date(msg.timestamp).toLocaleString()}</span>`;
+        chatMessages.appendChild(div);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+    });
   </script>
 </body>
 </html>
