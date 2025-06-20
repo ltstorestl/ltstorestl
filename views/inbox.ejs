@@ -47,6 +47,12 @@
             <input type="hidden" name="reportedUser" value="<%= m.from %>">
             <button type="submit" class="report-btn" title="Report this message">Report</button>
           </form>
+          <% if (user && (user.username === m.from || user.isAdmin)) { %>
+            <form class="delete-form" method="POST" action="/inbox/message/delete" style="display:inline;margin-left:8px;">
+              <input type="hidden" name="messageId" value="<%= m._id %>">
+              <button type="submit" class="delete-btn" title="Delete this message" style="color:#d32f2f;background:none;border:none;cursor:pointer;">Delete</button>
+            </form>
+          <% } %>
         </div>
       <% }) %>
       <% if (!messages.length) { %>

@@ -50,6 +50,12 @@
               <% } %>
             </div>
             <span><%= post.profileName %></span>
+            <% if (user && (user.username === post.author || user.isAdmin)) { %>
+              <form method="POST" action="/feed/delete" style="display:inline;margin-left:10px;">
+                <input type="hidden" name="postId" value="<%= post._id %>">
+                <button type="submit" class="delete-btn" style="color:#d32f2f;background:none;border:none;cursor:pointer;">Delete</button>
+              </form>
+            <% } %>
           </div>
           <div class="feed-content">
             <span style="font-size:1.4em;"><%= post.emoji %></span>
@@ -108,6 +114,12 @@
                       <input type="hidden" name="reportedUser" value="<%= msg.from %>">
                       <button type="submit" class="report-btn" title="Report this message">Report</button>
                     </form>
+                    <% if (user && (user.username === msg.from || user.isAdmin)) { %>
+                      <form class="delete-form" method="POST" action="/feed/message/delete" style="display:inline;margin-left:8px;">
+                        <input type="hidden" name="messageId" value="<%= msg._id %>">
+                        <button type="submit" class="delete-btn" title="Delete this message" style="color:#d32f2f;background:none;border:none;cursor:pointer;">Delete</button>
+                      </form>
+                    <% } %>
                   </div>
                 <% }) %>
               <% } %>
