@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Feed</title>
   <link rel="stylesheet" href="/styles.css">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7249348633842889" crossorigin="anonymous"></script>
 </head>
 <body class="dark-theme">
   <div class="main-nav">
@@ -76,33 +77,81 @@
       <% } %>
     </div>
     <!-- Floating chat box at bottom right -->
-    <div class="feed-chatbox">
-      <form method="POST" action="/feed/message">
-        <div class="feed-profile">
-          <div style="position:relative;">
-            <% if (user.profilePicture) { %>
-              <img src="<%= user.profilePicture %>" class="profile-pic" alt="Profile Picture">
+    <div class="feed-chatbox-with-avatars">
+      <div class="feed-chatbox">
+        <form id="chatForm" method="POST" action="/feed/message">
+          <div class="feed-profile">
+            <div style="position:relative;">
+              <% if (user.profilePicture) { %>
+                <img src="<%= user.profilePicture %>" class="profile-pic" alt="Profile Picture">
+              <% } else { %>
+                <span class="profile-pic placeholder"></span>
+              <% } %>
+              <% if (user.online) { %>
+                <span class="online-dot"></span>
+              <% } %>
+            </div>
+            <span><%= user.profileName || user.username %></span>
+          </div>
+          <div class="feed-content">
+            <input type="hidden" name="to" id="chatToUser" required>
+            <div id="chatRecipient" style="margin-bottom:10px;color:#8ab4f8;font-weight:500;"></div>
+            <div id="chatMessages">
+              <% if (typeof chatMessages !== 'undefined' && chatMessages && chatMessages.length) { %>
+                <% chatMessages.forEach(function(msg) { %>
+                  <div class="chat-message-item">
+                    <span class="from"><%= msg.from %>:</span>
+                    <span><%= msg.content %></span>
+                    <span class="timestamp"><%= new Date(msg.timestamp).toLocaleString() %></span>
+                    <form class="report-form" method="POST" action="/report/message" style="display:inline;margin-left:8px;">
+                      <input type="hidden" name="messageId" value="<%= msg._id %>">
+                      <input type="hidden" name="reportedUser" value="<%= msg.from %>">
+                      <button type="submit" class="report-btn" title="Report this message">Report</button>
+                    </form>
+                  </div>
+                <% }) %>
+              <% } %>
+            </div>
+            <textarea name="content" rows="2" placeholder="Type your message..." style="width:100%;border-radius:8px;background:#23262f;color:#e3e6ed;border:1px solid #444857;padding:8px;" required></textarea>
+            <button type="submit" style="margin-top:8px;width:100%;">Send</button>
+          </div>
+        </form>
+      </div>
+      <div class="floating-chat-avatars">
+        <% onlineUsers.forEach(function(u) { %>
+          <span class="chat-avatar" data-username="<%= u.username %>" title="<%= u.profileName || u.username %>">
+            <% if (u.profilePicture) { %>
+              <img src="<%= u.profilePicture %>" class="profile-pic" alt="" />
             <% } else { %>
               <span class="profile-pic placeholder"></span>
             <% } %>
-            <% if (user.online) { %>
+            <% if (u.online) { %>
               <span class="online-dot"></span>
             <% } %>
-          </div>
-          <span><%= user.profileName || user.username %></span>
-        </div>
-        <div class="feed-content">
-          <select name="to" required style="width:100%;margin-bottom:10px;">
-            <option value="">Send to...</option>
-            <% onlineUsers.forEach(function(u) { %>
-              <option value="<%= u.username %>"><%= u.profileName || u.username %></option>
-            <% }) %>
-          </select>
-          <textarea name="content" rows="2" placeholder="Type your message..." style="width:100%;border-radius:8px;background:#23262f;color:#e3e6ed;border:1px solid #444857;padding:8px;"></textarea>
-          <button type="submit" style="margin-top:8px;width:100%;">Send</button>
-        </div>
-      </form>
+            <!-- No username, label, or span for name here -->
+          </span>
+        <% }) %>
+      </div>
     </div>
   </div>
+  <script>
+    // Handle avatar click to set chat recipient
+    document.querySelectorAll('.floating-chat-avatars .chat-avatar').forEach(function(avatar) {
+      avatar.addEventListener('click', function() {
+        var username = this.getAttribute('data-username');
+        var displayName = this.getAttribute('title');
+        document.getElementById('chatToUser').value = username;
+        document.getElementById('chatRecipient').textContent = 'Chatting with: ' + displayName;
+        document.querySelector('#chatForm textarea').focus();
+      });
+    });
+    // Prevent sending message if no recipient selected
+    document.getElementById('chatForm').addEventListener('submit', function(e) {
+      if (!document.getElementById('chatToUser').value) {
+        alert('Please select a user to chat with by clicking their profile photo.');
+        e.preventDefault();
+      }
+    });
+  </script>
 </body>
 </html>

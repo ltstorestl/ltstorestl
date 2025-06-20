@@ -33,6 +33,20 @@
           <span class="from"><%= m.from %></span>
           <span><%= m.content %></span>
           <span class="timestamp"><%= new Date(m.timestamp).toLocaleString() %></span>
+          <form class="reply-form" method="POST" action="/inbox/send" style="display:inline;margin-left:10px;">
+            <input type="hidden" name="to" value="<%= m.from %>">
+            <input type="hidden" name="replyTo" value="<%= m._id %>">
+            <button type="button" class="reply-btn" onclick="showReplyBox(this)">Reply</button>
+            <div class="reply-box" style="display:none;margin-top:6px;">
+              <textarea name="content" placeholder="Type your reply..." required style="width:180px;height:36px;border-radius:6px;background:#23262f;color:#e3e6ed;border:1px solid #444857;padding:6px;"></textarea>
+              <button type="submit" style="margin-left:6px;">Send</button>
+            </div>
+          </form>
+          <form class="report-form" method="POST" action="/report/message" style="display:inline;margin-left:8px;">
+            <input type="hidden" name="messageId" value="<%= m._id %>">
+            <input type="hidden" name="reportedUser" value="<%= m.from %>">
+            <button type="submit" class="report-btn" title="Report this message">Report</button>
+          </form>
         </div>
       <% }) %>
       <% if (!messages.length) { %>
@@ -40,5 +54,15 @@
       <% } %>
     </div>
   </div>
+  <script>
+function showReplyBox(btn) {
+  var box = btn.parentNode.querySelector('.reply-box');
+  if (box.style.display === 'none') {
+    box.style.display = 'block';
+    box.querySelector('textarea').focus();
+    btn.style.display = 'none';
+  }
+}
+</script>
 </body>
 </html>
