@@ -341,7 +341,31 @@ app.post('/feed/post/:id/like', async (req, res) => {
     post.likes.push(username);
   }
   await post.save();
-  res.json({ likes: post.likes.length });
+  // If AJAX, send JSON. If form, redirect.
+  if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+    res.json({ likes: post.likes.length });
+  } else {
+    res.redirect('/feed');
+  }
+});
+
+// Delete a post (author or admin only)
+app.post('/feed/post/:id/delete', async (req, res) => {
+  if (!req.session.user) return res.status(401).send('Unauthorized');
+  const post = await Post.findById(req.params.id);
+  if (!post) return res.status(404).send('Post not found');
+  const username = req.session.user.username;
+  const user = await User.findOne({ username });
+  if (post.author === username || user.isAdmin) {
+    await Post.deleteOne({ _id: post._id });
+    // If AJAX, send JSON. If form, redirect.
+    if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+      return res.json({ success: true });
+    } else {
+      return res.redirect('/feed');
+    }
+  }
+  res.status(403).send('Forbidden');
 });
 
 const PORT = process.env.PORT || 3000;
