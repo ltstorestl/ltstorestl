@@ -17,47 +17,51 @@
   </div>
   <div class="inbox-container">
     <h2>Inbox</h2>
-    <form class="inbox-send-form" method="POST" action="/inbox/send">
-      <select name="to" required>
+    <form class="inbox-send-form" method="POST" action="/inbox/send" style="display:flex;gap:10px;align-items:flex-end;margin-bottom:18px;">
+      <select name="to" required style="flex:1;border-radius:8px;padding:8px;background:#23262f;color:#e3e6ed;border:1.5px solid #8ab4f8;font-size:1rem;">
         <option value="">Send to...</option>
         <% users.forEach(function(u) { %>
           <option value="<%= u.username %>"><%= u.profileName || u.username %></option>
         <% }) %>
       </select>
-      <textarea name="content" placeholder="Type your message..." required></textarea>
-      <button type="submit">Send</button>
+      <textarea name="content" placeholder="Type your message..." required style="flex:2;min-height:38px;max-height:80px;border-radius:8px;background:#23262f;color:#e3e6ed;border:1.5px solid #8ab4f8;padding:8px;font-size:1rem;"></textarea>
+      <button type="submit" style="background:#8ab4f8;color:#23262f;border:none;border-radius:8px;padding:10px 18px;font-size:1rem;cursor:pointer;transition:background 0.2s;">Send</button>
     </form>
     <% if (user && user.isAdmin) { %>
       <form method="POST" action="/inbox/messages/delete-all" style="margin-bottom:16px;">
         <button type="submit" class="delete-btn" style="background:#d32f2f;color:#fff;border:none;border-radius:6px;padding:6px 16px;">Delete All Messages (Admin)</button>
       </form>
     <% } %>
-    <div class="messages-list">
+    <div class="messages-list" style="margin-top:18px;">
       <% messages.forEach(function(m) { %>
-        <div class="message-item">
-          <span class="from"><%= m.from %></span>
-          <span><%= m.content %></span>
-          <span class="timestamp"><%= new Date(m.timestamp).toLocaleString() %></span>
-          <form class="reply-form" method="POST" action="/inbox/send" style="display:inline;margin-left:10px;">
-            <input type="hidden" name="to" value="<%= m.from %>">
-            <input type="hidden" name="replyTo" value="<%= m._id %>">
-            <button type="button" class="reply-btn" onclick="showReplyBox(this)">Reply</button>
-            <div class="reply-box" style="display:none;margin-top:6px;">
-              <textarea name="content" placeholder="Type your reply..." required style="width:180px;height:36px;border-radius:6px;background:#23262f;color:#e3e6ed;border:1px solid #444857;padding:6px;"></textarea>
-              <button type="submit" style="margin-left:6px;">Send</button>
-            </div>
-          </form>
-          <form class="report-form" method="POST" action="/report/message" style="display:inline;margin-left:8px;">
-            <input type="hidden" name="messageId" value="<%= m._id %>">
-            <input type="hidden" name="reportedUser" value="<%= m.from %>">
-            <button type="submit" class="report-btn" title="Report this message">Report</button>
-          </form>
-          <% if (user && (user.username === m.from || user.isAdmin)) { %>
-            <form class="delete-form" method="POST" action="/inbox/message/delete" style="display:inline;margin-left:8px;">
-              <input type="hidden" name="messageId" value="<%= m._id %>">
-              <button type="submit" class="delete-btn" title="Delete this message" style="color:#d32f2f;background:none;border:none;cursor:pointer;">Delete</button>
+        <div class="message-item" style="background:#23262f;border-radius:12px;box-shadow:0 2px 12px rgba(138,180,248,0.10);padding:16px 18px;margin-bottom:16px;display:flex;flex-direction:column;gap:8px;position:relative;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="from" style="color:#8ab4f8;font-weight:600;font-size:1.08em;"><%= m.from %></span>
+            <span class="timestamp" style="color:#b0b8c1;font-size:0.97em;">• <%= new Date(m.timestamp).toLocaleString() %></span>
+          </div>
+          <span style="font-size:1.13em;line-height:1.5;word-break:break-word;"> <%= m.content %> </span>
+          <div style="display:flex;gap:10px;align-items:center;margin-top:6px;">
+            <form class="reply-form" method="POST" action="/inbox/send" style="display:inline;">
+              <input type="hidden" name="to" value="<%= m.from %>">
+              <input type="hidden" name="replyTo" value="<%= m._id %>">
+              <button type="button" class="reply-btn" onclick="showReplyBox(this)" style="background:#8ab4f8;color:#23262f;border:none;border-radius:6px;padding:4px 12px;font-size:0.98em;cursor:pointer;">Reply</button>
+              <div class="reply-box" style="display:none;margin-top:6px;">
+                <textarea name="content" placeholder="Type your reply..." required style="width:180px;height:36px;border-radius:6px;background:#23262f;color:#e3e6ed;border:1px solid #444857;padding:6px;"></textarea>
+                <button type="submit" style="margin-left:6px;background:#8ab4f8;color:#23262f;border:none;border-radius:6px;padding:4px 10px;font-size:0.98em;">Send</button>
+              </div>
             </form>
-          <% } %>
+            <form class="report-form" method="POST" action="/report/message" style="display:inline;">
+              <input type="hidden" name="messageId" value="<%= m._id %>">
+              <input type="hidden" name="reportedUser" value="<%= m.from %>">
+              <button type="submit" class="report-btn" title="Report this message" style="background:#ff9800;color:#23262f;border:none;border-radius:6px;padding:4px 10px;font-size:0.98em;">Report</button>
+            </form>
+            <% if (user && (user.username === m.from || user.isAdmin)) { %>
+              <form class="delete-form" method="POST" action="/inbox/message/delete" style="display:inline;">
+                <input type="hidden" name="messageId" value="<%= m._id %>">
+                <button type="submit" class="delete-btn" title="Delete this message" style="background:#d32f2f;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:0.98em;">Delete</button>
+              </form>
+            <% } %>
+          </div>
         </div>
       <% }) %>
       <% if (!messages.length) { %>

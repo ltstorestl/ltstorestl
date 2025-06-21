@@ -35,10 +35,10 @@
       </select>
       <button type="submit">Post</button>
     </form>
-    <div class="feed-list">
+    <div class="feed-list" style="margin-top:24px;">
       <% posts.forEach(function(post) { %>
-        <div class="feed-post">
-          <div class="feed-profile">
+        <div class="feed-post" style="background:#23262f;border-radius:18px 18px 18px 6px;box-shadow:0 2px 12px rgba(138,180,248,0.13);padding:22px 26px;margin-bottom:24px;display:flex;align-items:flex-start;gap:18px;position:relative;">
+          <div class="feed-profile" style="display:flex;align-items:center;gap:12px;">
             <div style="position:relative;">
               <% if (post.profilePicture) { %>
                 <img src="<%= post.profilePicture %>" class="profile-pic" alt="Profile Picture">
@@ -49,28 +49,26 @@
                 <span class="online-dot"></span>
               <% } %>
             </div>
-            <span><%= post.profileName %></span>
+            <span style="font-weight:600;font-size:1.13em;color:#8ab4f8;"><%= post.profileName %></span>
             <% if (user && (user.username === post.author || user.isAdmin)) { %>
               <form method="POST" action="/feed/delete" style="display:inline;margin-left:10px;">
                 <input type="hidden" name="postId" value="<%= post._id %>">
-                <button type="submit" class="delete-btn" style="color:#d32f2f;background:none;border:none;cursor:pointer;">Delete</button>
+                <button type="submit" class="delete-btn" style="background:#d32f2f;color:#fff;border:none;border-radius:6px;padding:4px 12px;font-size:0.98em;cursor:pointer;">Delete</button>
               </form>
             <% } %>
           </div>
-          <div class="feed-content">
+          <div class="feed-content" style="flex:1;font-size:1.13em;line-height:1.6;">
             <span style="font-size:1.4em;"><%= post.emoji %></span>
             <%= post.content %>
             <% if (post.media) { %>
-              <img src="<%= post.media %>" class="feed-media" alt="media">
+              <img src="<%= post.media %>" class="feed-media" alt="media" style="margin-top:10px;border-radius:10px;max-width:100%;box-shadow:0 2px 8px rgba(138,180,248,0.10);">
             <% } %>
-            <div class="post-actions" style="margin-top:10px;display:flex;align-items:center;gap:16px;">
+            <div class="post-actions" style="margin-top:14px;display:flex;align-items:center;gap:18px;">
               <form method="POST" action="/feed/like" style="display:inline;">
                 <input type="hidden" name="postId" value="<%= post._id %>">
-                <button type="submit" class="like-btn" style="background:none;border:none;cursor:pointer;font-size:1.2em;">
-                  👍 <span><%= post.likes || 0 %></span>
-                </button>
+                <button type="submit" class="like-btn" style="background:#8ab4f8;color:#23262f;border:none;border-radius:6px;padding:4px 12px;font-size:1.08em;cursor:pointer;">👍 <span><%= post.likes || 0 %></span></button>
               </form>
-              <button type="button" class="comment-toggle-btn" onclick="toggleCommentBox('<%= post._id %>')" style="background:none;border:none;cursor:pointer;font-size:1.2em;">💬 Comment</button>
+              <button type="button" class="comment-toggle-btn" onclick="toggleCommentBox('<%= post._id %>')" style="background:#23262f;color:#8ab4f8;border:1.5px solid #8ab4f8;border-radius:6px;padding:4px 12px;font-size:1.08em;cursor:pointer;">💬 Comment</button>
               <form method="POST" action="/feed/emoji" style="display:inline;">
                 <input type="hidden" name="postId" value="<%= post._id %>">
                 <select name="emoji" onchange="this.form.submit()" style="background:#23262f;color:#e3e6ed;border-radius:6px;padding:2px 6px;">
@@ -88,7 +86,7 @@
                 </select>
               </form>
             </div>
-            <div class="comment-section" id="comment-section-<%= post._id %>" style="display:none;margin-top:10px;">
+            <div class="comment-section" id="comment-section-<%= post._id %>" style="display:none;margin-top:12px;">
               <form method="POST" action="/feed/comment" style="display:flex;gap:8px;align-items:center;">
                 <input type="hidden" name="postId" value="<%= post._id %>">
                 <input type="text" name="comment" placeholder="Write a comment..." required style="flex:1;border-radius:6px;background:#23262f;color:#e3e6ed;border:1px solid #444857;padding:6px;">
@@ -105,7 +103,7 @@
                 <% } %>
               </div>
             </div>
-            <form method="POST" action="/feed/report" style="margin-top:8px;">
+            <form method="POST" action="/feed/report" style="margin-top:10px;">
               <input type="hidden" name="postId" value="<%= post._id %>">
               <input type="hidden" name="reportedUser" value="<%= post.author %>">
               <select name="reason" required style="background:#23262f;color:#e3e6ed;border-radius:6px;padding:4px 8px;margin-right:8px;">
@@ -142,7 +140,13 @@
             <span><%= user.profileName || user.username %></span>
           </div>
           <div class="feed-content">
-            <input type="hidden" name="to" id="chatToUser" required>
+            <label for="chatToUserSelect" style="color:#8ab4f8;font-weight:500;margin-bottom:6px;">Chat with:</label>
+            <select id="chatToUserSelect" name="to" required style="width:100%;margin-bottom:10px;border-radius:6px;padding:6px;background:#23262f;color:#e3e6ed;border:1px solid #444857;">
+              <option value="">Select a user...</option>
+              <% onlineUsers.forEach(function(u) { if(u.username !== user.username) { %>
+                <option value="<%= u.username %>"><%= u.profileName || u.username %></option>
+              <% } }) %>
+            </select>
             <div id="chatRecipient" style="margin-bottom:10px;color:#8ab4f8;font-weight:500;"></div>
             <div id="chatMessages">
               <!-- Chat messages will be rendered here by JS -->
@@ -152,50 +156,30 @@
           </div>
         </form>
       </div>
-      <div class="floating-chat-avatars">
-        <% onlineUsers.forEach(function(u) { %>
-          <span class="chat-avatar" data-username="<%= u.username %>" title="<%= u.profileName || u.username %>">
-            <% if (u.profilePicture) { %>
-              <img src="<%= u.profilePicture %>" class="profile-pic" alt="" />
-            <% } else { %>
-              <span class="profile-pic placeholder"></span>
-            <% } %>
-            <% if (u.online) { %>
-              <span class="online-dot"></span>
-            <% } %>
-            <!-- No username, label, or span for name here -->
-          </span>
-        <% }) %>
-      </div>
     </div>
   </div>
   <script src="/socket.io/socket.io.js"></script>
   <script>
     // Track unread messages per user
     const unread = {};
-    // Handle avatar click to set chat recipient
-    document.querySelectorAll('.floating-chat-avatars .chat-avatar').forEach(function(avatar) {
-      avatar.addEventListener('click', function() {
-        var username = this.getAttribute('data-username');
-        var displayName = this.getAttribute('title');
-        document.getElementById('chatToUser').value = username;
-        document.getElementById('chatRecipient').textContent = 'Chatting with: ' + displayName;
-        document.querySelector('#chatForm textarea').focus();
-        document.getElementById('chatMessages').innerHTML = '';
-        // Remove highlight for this avatar
-        this.classList.remove('has-unread');
-        unread[username] = 0;
-      });
+    // Handle dropdown change to set chat recipient
+    document.getElementById('chatToUserSelect').addEventListener('change', function() {
+      var username = this.value;
+      var displayName = this.options[this.selectedIndex].text;
+      document.getElementById('chatToUser').value = username;
+      document.getElementById('chatRecipient').textContent = username ? 'Chatting with: ' + displayName : '';
+      document.querySelector('#chatForm textarea').focus();
+      document.getElementById('chatMessages').innerHTML = '';
     });
     // Prevent sending message if no recipient selected
     document.getElementById('chatForm').addEventListener('submit', function(e) {
-      if (!document.getElementById('chatToUser').value) {
-        alert('Please select a user to chat with by clicking their profile photo.');
+      if (!document.getElementById('chatToUserSelect').value) {
+        alert('Please select a user to chat with from the dropdown.');
         e.preventDefault();
         return;
       }
       e.preventDefault();
-      const to = document.getElementById('chatToUser').value;
+      const to = document.getElementById('chatToUserSelect').value;
       const content = this.querySelector('textarea').value.trim();
       if (!content) return;
       // Send message via Socket.IO
