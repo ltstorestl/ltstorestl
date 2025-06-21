@@ -141,12 +141,13 @@
           </div>
           <div class="feed-content">
             <label for="chatToUserSelect" style="color:#8ab4f8;font-weight:500;margin-bottom:6px;">Chat with:</label>
-            <select id="chatToUserSelect" name="to" required style="width:100%;margin-bottom:10px;border-radius:6px;padding:6px;background:#23262f;color:#e3e6ed;border:1px solid #444857;">
+            <select id="chatToUserSelect" name="toDropdown" required style="width:100%;margin-bottom:10px;border-radius:6px;padding:6px;background:#23262f;color:#e3e6ed;border:1px solid #444857;">
               <option value="">Select a user...</option>
-              <% onlineUsers.forEach(function(u) { if(u.username !== user.username) { %>
+              <% if (onlineUsers && onlineUsers.length) { onlineUsers.forEach(function(u) { if(u.username !== user.username) { %>
                 <option value="<%= u.username %>"><%= u.profileName || u.username %></option>
-              <% } }) %>
+              <% } }) } %>
             </select>
+            <input type="hidden" name="to" id="chatToUser" required>
             <div id="chatRecipient" style="margin-bottom:10px;color:#8ab4f8;font-weight:500;"></div>
             <div id="chatMessages">
               <!-- Chat messages will be rendered here by JS -->
@@ -162,7 +163,7 @@
   <script>
     // Track unread messages per user
     const unread = {};
-    // Handle dropdown change to set chat recipient
+    // Handle dropdown change to set chat recipient and hidden input
     document.getElementById('chatToUserSelect').addEventListener('change', function() {
       var username = this.value;
       var displayName = this.options[this.selectedIndex].text;
