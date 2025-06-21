@@ -50,17 +50,21 @@ const Message = mongoose.model('Message', new mongoose.Schema({
   to: { type: String, required: true },
   content: { type: String, required: true },
   timestamp: { type: Date, default: Date.now },
-  read: { type: Boolean, default: false }, // New field for read status
-  type: { type: String, enum: ['chat', 'inbox'], default: 'inbox' } // Add type field
+  read: { type: Boolean, default: false },
+  type: { type: String, enum: ['chat', 'inbox'], default: 'inbox' },
+  likes: [{ type: String }], // usernames who liked
+  reactions: { type: Map, of: [String], default: {} } // emoji: [usernames]
 }));
 
 // Post model
 const Post = mongoose.model('Post', new mongoose.Schema({
   author: { type: String, required: true },
   content: { type: String },
-  media: { type: String }, // image/gif path
+  media: { type: String },
   emoji: { type: String },
-  timestamp: { type: Date, default: Date.now }
+  timestamp: { type: Date, default: Date.now },
+  likes: [{ type: String }], // usernames who liked
+  reactions: { type: Map, of: [String], default: {} } // emoji: [usernames]
 }));
 
 // Report model
