@@ -368,5 +368,22 @@ app.post('/feed/post/:id/delete', async (req, res) => {
   res.status(403).send('Forbidden');
 });
 
+// Add a comment to a post
+app.post('/feed/post/:id/comment', async (req, res) => {
+  if (!req.session.user) return res.status(401).send('Unauthorized');
+  const { content } = req.body;
+  if (!content) return res.status(400).send('Missing comment content');
+  const post = await Post.findById(req.params.id);
+  if (!post) return res.status(404).send('Post not found');
+  post.comments.push({ author: req.session.user.username, content });
+  await post.save();
+  // If AJAX, send JSON. If form, redirect.
+  if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+    res.json({ comments: post.comments });
+  } else {
+    res.redirect('/feed');
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

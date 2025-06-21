@@ -6,7 +6,15 @@
   <title>Admin Setup</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
-<body class="dark-theme">
+<body class="dark-theme" id="mainBody">
+  <div class="main-nav">
+    <a href="/dashboard">Home</a>
+    <a href="/feed">Feed</a>
+    <a href="/inbox">Inbox</a>
+    <a href="/settings">Settings</a>
+    <a href="/logout">Logout</a>
+    <button id="toggleViewBtn" style="float:right;margin-left:auto;background:#444;color:#fff;border:none;border-radius:6px;padding:6px 16px;cursor:pointer;">Switch to Mobile View</button>
+  </div>
   <div class="container">
     <form class="login-form" method="POST" action="/admin-setup">
       <h2>Admin Setup</h2>
@@ -21,5 +29,39 @@
       <a href="/login">Back to Login</a>
     </div>
   </div>
+  <script>
+    // Desktop/Mobile toggle
+    const toggleBtn = document.getElementById('toggleViewBtn');
+    const mainBody = document.getElementById('mainBody');
+    function setViewMode(mode) {
+      if (mode === 'mobile') {
+        mainBody.classList.add('mobile-view');
+        toggleBtn.textContent = 'Switch to Desktop View';
+        localStorage.setItem('viewMode', 'mobile');
+      } else {
+        mainBody.classList.remove('mobile-view');
+        toggleBtn.textContent = 'Switch to Mobile View';
+        localStorage.setItem('viewMode', 'desktop');
+      }
+    }
+    toggleBtn.addEventListener('click', function() {
+      if (mainBody.classList.contains('mobile-view')) {
+        setViewMode('desktop');
+      } else {
+        setViewMode('mobile');
+      }
+    });
+    setViewMode(localStorage.getItem('viewMode') === 'mobile' ? 'mobile' : 'desktop');
+  </script>
+  <style>
+    body.mobile-view .admin-setup-container {
+      max-width: 420px !important;
+      font-size: 1.08em;
+    }
+    body.mobile-view .main-nav {
+      font-size: 1.1em;
+      padding: 8px 2px;
+    }
+  </style>
 </body>
 </html>
