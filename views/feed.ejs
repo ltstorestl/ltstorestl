@@ -6,6 +6,110 @@
   <title>Feed</title>
   <link rel="stylesheet" href="/styles.css">
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7249348633842889" crossorigin="anonymous"></script>
+  <style>
+    body, html {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      background: #181a20;
+      overflow-x: hidden;
+    }
+    .feed-container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 24px 8px 80px 8px;
+      min-height: 100vh;
+      background: #181a20;
+    }
+    .feed-list {
+      margin-top: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+    .feed-post {
+      background: #23262f;
+      border-radius: 18px 18px 18px 6px;
+      box-shadow: 0 2px 12px rgba(138,180,248,0.13);
+      padding: 28px 20px 24px 20px;
+      margin-bottom: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      position: relative;
+    }
+    .feed-profile {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 8px;
+    }
+    .feed-content {
+      font-size: 1.13em;
+      line-height: 1.7;
+      word-break: break-word;
+      margin-bottom: 8px;
+    }
+    .post-actions {
+      margin-top: 18px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+    .comment-section {
+      margin-top: 18px;
+      padding: 12px 0 0 0;
+      border-top: 1px solid #333;
+    }
+    .comments-list {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .comment-item {
+      padding: 8px 0;
+      border-bottom: 1px solid #23262f;
+      font-size: 0.98em;
+    }
+    @media (max-width: 700px) {
+      .feed-container {
+        max-width: 100vw;
+        padding: 12px 2vw 80px 2vw;
+      }
+      .feed-list {
+        gap: 18px;
+      }
+      .feed-post {
+        padding: 18px 6px 16px 6px;
+        gap: 10px;
+      }
+      .feed-profile {
+        gap: 8px;
+      }
+      .post-actions {
+        gap: 10px;
+      }
+      .comment-section {
+        padding: 8px 0 0 0;
+      }
+      .comments-list {
+        gap: 4px;
+      }
+    }
+    /* Make feed scrollable on mobile */
+    @media (max-width: 700px) {
+      html, body {
+        overflow-x: hidden;
+      }
+      .feed-container {
+        min-height: 100vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+    }
+  </style>
 </head>
 <body class="dark-theme">
   <div class="main-nav">
@@ -37,8 +141,8 @@
     </form>
     <div class="feed-list" style="margin-top:24px;">
       <% posts.forEach(function(post) { %>
-        <div class="feed-post" style="background:#23262f;border-radius:18px 18px 18px 6px;box-shadow:0 2px 12px rgba(138,180,248,0.13);padding:22px 26px;margin-bottom:24px;display:flex;align-items:flex-start;gap:18px;position:relative;">
-          <div class="feed-profile" style="display:flex;align-items:center;gap:12px;">
+        <div class="feed-post" style="background:#23262f;border-radius:18px 18px 18px 6px;box-shadow:0 2px 12px rgba(138,180,248,0.13);padding:22px 26px;margin-bottom:0;display:flex;flex-direction:column;gap:18px;position:relative;">
+          <div class="feed-profile" style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
             <div style="position:relative;">
               <% if (post.profilePicture) { %>
                 <img src="<%= post.profilePicture %>" class="profile-pic" alt="Profile Picture">
@@ -56,27 +160,27 @@
               </form>
             <% } %>
           </div>
-          <div class="feed-content" style="flex:1;font-size:1.13em;line-height:1.6;">
+          <div class="feed-content" style="font-size:1.13em;line-height:1.7;word-break:break-word;margin-bottom:8px;">
             <span style="font-size:1.4em;"><%= post.emoji %></span>
             <%= post.content %>
             <% if (post.media) { %>
               <img src="<%= post.media %>" class="feed-media" alt="media" style="margin-top:10px;border-radius:10px;max-width:100%;box-shadow:0 2px 8px rgba(138,180,248,0.10);">
             <% } %>
-            <div class="post-actions" style="margin-top:14px;display:flex;align-items:center;gap:18px;">
+            <div class="post-actions" style="margin-top:18px;display:flex;align-items:center;gap:24px;">
               <form method="POST" action="/feed/post/<%= post._id %>/like" style="display:inline;">
                 <button type="submit" class="like-btn" style="background:#8ab4f8;color:#23262f;border:none;border-radius:6px;padding:4px 12px;font-size:1.08em;cursor:pointer;">👍 <span><%= post.likes ? post.likes.length : 0 %></span></button>
               </form>
               <button type="button" class="comment-toggle-btn" onclick="toggleCommentBox('<%= post._id %>')" style="background:#23262f;color:#8ab4f8;border:1.5px solid #8ab4f8;border-radius:6px;padding:4px 12px;font-size:1.08em;cursor:pointer;">💬 Comment</button>
             </div>
-            <div class="comment-section" id="comment-section-<%= post._id %>" style="display:none;margin-top:12px;">
+            <div class="comment-section" id="comment-section-<%= post._id %>" style="display:none;margin-top:18px;padding:12px 0 0 0;border-top:1px solid #333;">
               <form method="POST" action="/feed/post/<%= post._id %>/comment" style="display:flex;gap:8px;align-items:center;">
                 <input type="text" name="content" placeholder="Write a comment..." required style="flex:1;border-radius:6px;background:#23262f;color:#e3e6ed;border:1px solid #444857;padding:6px;">
                 <button type="submit" style="background:#8ab4f8;color:#23262f;border:none;border-radius:6px;padding:6px 12px;">Post</button>
               </form>
-              <div class="comments-list" style="margin-top:8px;">
+              <div class="comments-list" style="margin-top:10px;display:flex;flex-direction:column;gap:8px;">
                 <% if (post.comments && post.comments.length) { %>
                   <% post.comments.forEach(function(c) { %>
-                    <div class="comment-item" style="margin-bottom:6px;">
+                    <div class="comment-item" style="padding:8px 0;border-bottom:1px solid #23262f;font-size:0.98em;">
                       <span style="color:#8ab4f8;font-weight:500;"><%= c.author %>:</span>
                       <span><%= c.content %></span>
                     </div>
