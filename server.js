@@ -50,7 +50,8 @@ const Message = mongoose.model('Message', new mongoose.Schema({
   to: { type: String, required: true },
   content: { type: String, required: true },
   timestamp: { type: Date, default: Date.now },
-  read: { type: Boolean, default: false } // New field for read status
+  read: { type: Boolean, default: false }, // New field for read status
+  type: { type: String, enum: ['chat', 'inbox'], default: 'inbox' } // Add type field
 }));
 
 // Post model
@@ -205,31 +206,24 @@ app.post('/feed/post', upload.single('media'), async (req, res) => {
   res.redirect('/feed');
 });
 
-app.post('/feed/message', async (req, res) => {
+// Inbox send: set type to inbox
+app.post('/inbox/send', async (req, res) => {
   if (!req.session.user) return res.status(401).send('Unauthorized');
   const { to, content } = req.body;
   if (!to || !content) return res.status(400).send('Missing fields');
-  await Message.create({ from: req.session.user.username, to, content });
-  res.redirect('/feed');
+  await Message.create({ from: req.session.user.username, to, content, type: 'inbox' }); // Set type to inbox
+  res.redirect('/inbox');
 });
 
 app.get('/inbox', async (req, res) => {
   if (!req.session.user) return res.redirect('/login');
   const user = await User.findOne({ username: req.session.user.username });
   // Mark all messages as read when visiting inbox
-  await Message.updateMany({ to: user.username, read: { $ne: true } }, { read: true });
-  const messages = await Message.find({ to: user.username }).sort({ timestamp: -1 }).lean();
+  await Message.updateMany({ to: user.username, read: { $ne: true }, type: 'inbox' }, { read: true });
+  const messages = await Message.find({ to: user.username, type: 'inbox' }).sort({ timestamp: -1 }).lean(); // Only inbox messages
   // Get all users for sending messages
   const users = await User.find({ username: { $ne: user.username } }, 'username profileName');
   res.render('inbox', { user, users, messages });
-});
-
-app.post('/inbox/send', async (req, res) => {
-  if (!req.session.user) return res.status(401).send('Unauthorized');
-  const { to, content } = req.body;
-  if (!to || !content) return res.status(400).send('Missing fields');
-  await Message.create({ from: req.session.user.username, to, content });
-  res.redirect('/inbox');
 });
 
 app.get('/settings', async (req, res) => {
@@ -269,8 +263,8 @@ app.post('/inbox/message/delete', async (req, res) => {
   const user = await User.findOne({ username: req.session.user.username });
   const message = await Message.findById(messageId);
   if (!message) return res.redirect('/inbox');
-  // Only allow delete if user is sender or admin
-  if (message.from === user.username || user.isAdmin) {
+  // Allow delete if user is sender, recipient, or admin
+  if (message.from === user.username || message.to === user.username || user.isAdmin) {
     await Message.deleteOne({ _id: messageId });
   }
   res.redirect('/inbox');
@@ -280,6 +274,22 @@ app.post('/inbox/message/delete', async (req, res) => {
 app.post('/inbox/messages/delete-all', requireAdmin, async (req, res) => {
   await Message.deleteMany({});
   res.redirect('/inbox');
+});
+
+// Endpoint to fetch chat history between logged-in user and another user
+app.get('/chat/history/:user', async (req, res) => {
+  if (!req.session.user) return res.status(401).send('Unauthorized');
+  const user1 = req.session.user.username;
+  const user2 = req.params.user;
+  // Find all chat messages between user1 and user2
+  const messages = await Message.find({
+    type: 'chat',
+    $or: [
+      { from: user1, to: user2 },
+      { from: user2, to: user1 }
+    ]
+  }).sort({ timestamp: 1 }).lean();
+  res.json(messages);
 });
 
 // Socket.IO chat logic
@@ -296,7 +306,7 @@ io.on('connection', (socket) => {
   // Handle sending chat messages
   socket.on('chat message', async (msg) => {
     if (!msg.from || !msg.to || !msg.content) return;
-    const message = await Message.create({ from: msg.from, to: msg.to, content: msg.content });
+    const message = await Message.create({ from: msg.from, to: msg.to, content: msg.content, type: 'chat' }); // Set type to chat
     io.to(msg.to).emit('chat message', message);
     socket.emit('chat message', message);
   });
