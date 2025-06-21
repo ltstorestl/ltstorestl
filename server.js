@@ -63,8 +63,13 @@ const Post = mongoose.model('Post', new mongoose.Schema({
   media: { type: String },
   emoji: { type: String },
   timestamp: { type: Date, default: Date.now },
-  likes: [{ type: String }], // usernames who liked
-  reactions: { type: Object, default: {} } // emoji: [usernames]
+  likes: [{ type: String }],
+  reactions: { type: Object, default: {} },
+  comments: [{
+    author: String,
+    content: String,
+    timestamp: { type: Date, default: Date.now }
+  }]
 }));
 
 // Report model
@@ -322,6 +327,21 @@ io.on('connection', (socket) => {
       io.emit('online-users-updated');
     }
   });
+});
+
+// Like/unlike a post
+app.post('/feed/post/:id/like', async (req, res) => {
+  if (!req.session.user) return res.status(401).send('Unauthorized');
+  const post = await Post.findById(req.params.id);
+  if (!post) return res.status(404).send('Post not found');
+  const username = req.session.user.username;
+  if (post.likes.includes(username)) {
+    post.likes = post.likes.filter(u => u !== username);
+  } else {
+    post.likes.push(username);
+  }
+  await post.save();
+  res.json({ likes: post.likes.length });
 });
 
 const PORT = process.env.PORT || 3000;
