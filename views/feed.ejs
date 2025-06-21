@@ -51,8 +51,7 @@
             </div>
             <span style="font-weight:600;font-size:1.13em;color:#8ab4f8;"><%= post.profileName %></span>
             <% if (user && (user.username === post.author || user.isAdmin)) { %>
-              <form method="POST" action="/feed/delete" style="display:inline;margin-left:10px;">
-                <input type="hidden" name="postId" value="<%= post._id %>">
+              <form method="POST" action="/feed/post/<%= post._id %>/delete" style="display:inline;margin-left:10px;">
                 <button type="submit" class="delete-btn" style="background:#d32f2f;color:#fff;border:none;border-radius:6px;padding:4px 12px;font-size:0.98em;cursor:pointer;">Delete</button>
               </form>
             <% } %>
@@ -64,40 +63,22 @@
               <img src="<%= post.media %>" class="feed-media" alt="media" style="margin-top:10px;border-radius:10px;max-width:100%;box-shadow:0 2px 8px rgba(138,180,248,0.10);">
             <% } %>
             <div class="post-actions" style="margin-top:14px;display:flex;align-items:center;gap:18px;">
-              <form method="POST" action="/feed/like" style="display:inline;">
-                <input type="hidden" name="postId" value="<%= post._id %>">
-                <button type="submit" class="like-btn" style="background:#8ab4f8;color:#23262f;border:none;border-radius:6px;padding:4px 12px;font-size:1.08em;cursor:pointer;">👍 <span><%= post.likes || 0 %></span></button>
+              <form method="POST" action="/feed/post/<%= post._id %>/like" style="display:inline;">
+                <button type="submit" class="like-btn" style="background:#8ab4f8;color:#23262f;border:none;border-radius:6px;padding:4px 12px;font-size:1.08em;cursor:pointer;">👍 <span><%= post.likes ? post.likes.length : 0 %></span></button>
               </form>
               <button type="button" class="comment-toggle-btn" onclick="toggleCommentBox('<%= post._id %>')" style="background:#23262f;color:#8ab4f8;border:1.5px solid #8ab4f8;border-radius:6px;padding:4px 12px;font-size:1.08em;cursor:pointer;">💬 Comment</button>
-              <form method="POST" action="/feed/emoji" style="display:inline;">
-                <input type="hidden" name="postId" value="<%= post._id %>">
-                <select name="emoji" onchange="this.form.submit()" style="background:#23262f;color:#e3e6ed;border-radius:6px;padding:2px 6px;">
-                  <option value="">😊</option>
-                  <option value="😀">😀</option>
-                  <option value="😂">😂</option>
-                  <option value="😍">😍</option>
-                  <option value="😎">😎</option>
-                  <option value="🥳">🥳</option>
-                  <option value="😢">😢</option>
-                  <option value="🔥">🔥</option>
-                  <option value="👍">👍</option>
-                  <option value="🙏">🙏</option>
-                  <option value="🎉">🎉</option>
-                </select>
-              </form>
             </div>
             <div class="comment-section" id="comment-section-<%= post._id %>" style="display:none;margin-top:12px;">
-              <form method="POST" action="/feed/comment" style="display:flex;gap:8px;align-items:center;">
-                <input type="hidden" name="postId" value="<%= post._id %>">
-                <input type="text" name="comment" placeholder="Write a comment..." required style="flex:1;border-radius:6px;background:#23262f;color:#e3e6ed;border:1px solid #444857;padding:6px;">
+              <form method="POST" action="/feed/post/<%= post._id %>/comment" style="display:flex;gap:8px;align-items:center;">
+                <input type="text" name="content" placeholder="Write a comment..." required style="flex:1;border-radius:6px;background:#23262f;color:#e3e6ed;border:1px solid #444857;padding:6px;">
                 <button type="submit" style="background:#8ab4f8;color:#23262f;border:none;border-radius:6px;padding:6px 12px;">Post</button>
               </form>
               <div class="comments-list" style="margin-top:8px;">
                 <% if (post.comments && post.comments.length) { %>
                   <% post.comments.forEach(function(c) { %>
                     <div class="comment-item" style="margin-bottom:6px;">
-                      <span style="color:#8ab4f8;font-weight:500;"><%= c.user %>:</span>
-                      <span><%= c.text %></span>
+                      <span style="color:#8ab4f8;font-weight:500;"><%= c.author %>:</span>
+                      <span><%= c.content %></span>
                     </div>
                   <% }) %>
                 <% } %>
