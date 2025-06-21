@@ -44,6 +44,23 @@
     </div>
     <% } %>
   </div>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-analytics.js"></script>
+  <script>
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDYTOuzDry9r9EMeMF8tDL1y0msPOiXvEY",
+      authDomain: "pageme-77488.firebaseapp.com",
+      projectId: "pageme-77488",
+      storageBucket: "pageme-77488.firebasestorage.app",
+      messagingSenderId: "326270742336",
+      appId: "1:326270742336:web:22dc7cbffb30360001d4a5",
+      measurementId: "G-TL4FTNZWR2"
+    };
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const analytics = firebase.analytics(app);
+  </script>
   <script>
     // Desktop/Mobile toggle
     const toggleBtn = document.getElementById('toggleViewBtn');
