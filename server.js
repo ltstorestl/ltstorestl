@@ -284,27 +284,25 @@ app.post('/inbox/messages/delete-all', requireAdmin, async (req, res) => {
 
 // Socket.IO chat logic
 io.on('connection', (socket) => {
-  // Optionally, associate socket with user after authentication
-  socket.on('join', (username) => {
+  socket.on('join', async (username) => {
     socket.username = username;
-    socket.join(username); // Join a room for private messaging
+    socket.join(username);
+    // Set user online in DB
+    await User.updateOne({ username }, { online: true });
   });
 
   // Handle sending chat messages
   socket.on('chat message', async (msg) => {
-    // msg: { from, to, content }
     if (!msg.from || !msg.to || !msg.content) return;
-    // Save message to DB
     const message = await Message.create({ from: msg.from, to: msg.to, content: msg.content });
-    // Emit to recipient if online
     io.to(msg.to).emit('chat message', message);
-    // Emit to sender for confirmation
     socket.emit('chat message', message);
   });
 
-  // Optionally, handle disconnects
-  socket.on('disconnect', () => {
-    // You can update user online status here if needed
+  socket.on('disconnect', async () => {
+    if (socket.username) {
+      await User.updateOne({ username: socket.username }, { online: false });
+    }
   });
 });
 
