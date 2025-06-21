@@ -53,7 +53,7 @@ const Message = mongoose.model('Message', new mongoose.Schema({
   read: { type: Boolean, default: false },
   type: { type: String, enum: ['chat', 'inbox'], default: 'inbox' },
   likes: [{ type: String }], // usernames who liked
-  reactions: { type: Map, of: [String], default: {} } // emoji: [usernames]
+  reactions: { type: Object, default: {} } // emoji: [usernames]
 }));
 
 // Post model
@@ -64,7 +64,7 @@ const Post = mongoose.model('Post', new mongoose.Schema({
   emoji: { type: String },
   timestamp: { type: Date, default: Date.now },
   likes: [{ type: String }], // usernames who liked
-  reactions: { type: Map, of: [String], default: {} } // emoji: [usernames]
+  reactions: { type: Object, default: {} } // emoji: [usernames]
 }));
 
 // Report model
