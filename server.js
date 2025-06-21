@@ -289,6 +289,8 @@ io.on('connection', (socket) => {
     socket.join(username);
     // Set user online in DB
     await User.updateOne({ username }, { online: true });
+    // Broadcast to all clients that online users may have changed
+    io.emit('online-users-updated');
   });
 
   // Handle sending chat messages
@@ -302,6 +304,8 @@ io.on('connection', (socket) => {
   socket.on('disconnect', async () => {
     if (socket.username) {
       await User.updateOne({ username: socket.username }, { online: false });
+      // Broadcast to all clients that online users may have changed
+      io.emit('online-users-updated');
     }
   });
 });
